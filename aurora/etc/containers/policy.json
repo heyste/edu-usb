@@ -1,0 +1,46 @@
+{
+    "default": [
+        {
+            "type": "reject"
+        }
+    ],
+    "transports": {
+        "docker": {
+            "docker.io/heyste/aurora": [
+                {
+                    "type": "sigstoreSigned",
+                    "keyPath": "/etc/pki/containers/docker.io-heyste-aurora.pub",
+                    "signedIdentity": {
+                        "type": "matchRepository"
+                    }
+                }
+            ],
+            "registry.access.redhat.com": [
+                {
+                    "type": "signedBy",
+                    "keyType": "GPGKeys",
+                    "keyPath": "/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
+                }
+            ],
+            "registry.redhat.io": [
+                {
+                    "type": "signedBy",
+                    "keyType": "GPGKeys",
+                    "keyPath": "/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
+                }
+            ],
+            "": [
+                {
+                    "type": "insecureAcceptAnything"
+                }
+            ]
+        },
+        "docker-daemon": {
+            "": [
+                {
+                    "type": "insecureAcceptAnything"
+                }
+            ]
+        }
+    }
+}

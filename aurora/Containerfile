@@ -1,0 +1,71 @@
+FROM ghcr.io/ublue-os/aurora:40
+
+LABEL org.opencontainers.image.title="iiEdu USB"
+LABEL org.opencontainers.image.description="Customized image of Aurora with Minecraft"
+LABEL org.opencontainers.image.source="https://github.com/heyste/edu-usb"
+LABEL org.opencontainers.image.licenses="MIT"
+
+RUN rpm-ostree install \
+        bwm-ng \
+        distrobox \
+        htop \
+        igt-gpu-tools \
+        iotop \
+        iwd \
+        kitty \
+        krb5-workstation \
+        libvirt-daemon \
+        libvirt-daemon-config-network \
+        libvirt-daemon-driver-interface \
+        libvirt-daemon-driver-network \
+        libvirt-daemon-driver-nwfilter \
+        libvirt-daemon-driver-qemu \
+        libvirt-daemon-driver-secret \
+        libvirt-daemon-driver-storage-core \
+        libvirt-dbus \
+        netcat \
+        qemu-kvm \
+        sysprof \
+        the_silver_searcher \
+        vim \
+        wireguard-tools \
+        zsh \
+    && \
+    systemctl enable libvirtd.socket \
+    && \
+    rm -rf /var/lib/unbound/root.key
+
+
+# A helper to set ARCH_TYPE and ARCH_TYPE2
+COPY arch-helper.sh /usr/bin/arch-helper.sh
+
+# Install Java
+RUN mkdir /tmp/jdk-17 \
+  && curl -L https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz \
+     | tar --directory /tmp/jdk-17 --extract --ungzip --strip-components 1\
+  && mv /tmp/jdk-17 /usr/bin/jdk-17
+
+# Source forge files
+RUN mkdir -p /usr/minecraft/forge \
+  && cd /usr/minecraft \
+  && wget "https://maven.minecraftforge.net/net/minecraftforge/forge/1.19-41.1.0/forge-1.19-41.1.0-mdk.zip" -O forge.zip \
+  && unzip forge.zip -d forge
+
+# Build minecraft forge
+RUN export PATH=$PATH:/usr/bin/jdk-17/bin \
+  && java -version \
+  && mkdir /usr/gradle_home \
+  && export GRADLE_USER_HOME=/usr/gradle_home \
+  && cd /usr/minecraft/forge \
+  && ./gradlew genEclipseRuns
+
+# Update PATH include java binary
+RUN echo 'export PATH=$PATH:/usr/bin/jdk-17/bin' >> /etc/skel/.bashrc
+
+# A helper to sync files/flatpaks
+COPY sync-user.sh /usr/bin/sync-user.sh
+
+# Copy custom config to /etc
+COPY etc etc
+
+RUN ostree container commit

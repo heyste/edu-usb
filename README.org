@@ -1,0 +1,116 @@
+#+title: Building iiEdu iso
+#+author: Stephen Heywood
+
+
+* TLDR
+
+This repo is an initial prototype for building an educational environment that is open and extendable for anyone to change.
+
+* Build environment
+
+The build process is focused on using [[https://podman.io/][podman]] ~4.9.2+~ at various points of the build process. Using a [[https://fedoraproject.org/][Fedora]] based system will provide the simplest environment to create the ~deploy.iso~.
+
+** Using Ubuntu
+
+Ubuntu [[https://releases.ubuntu.com/noble/][noble]] has a suitable version, else you will need to use [[https://multipass.run/][multipass]] to provided a virtual environment.
+
+*** Install multipass
+
+#+begin_src tmux :session iiedu:vm :results none
+sudo snap install multipass
+#+end_src
+
+*** Launch VM
+
+#+begin_src tmux :session iiedu:vm :results none
+multipass launch -v --name iiedu --cpus 6 --disk 40g --memory 8g 24.04
+#+end_src
+
+*** connect to VM (if using multipass)
+
+#+begin_src tmux :session iiedu:vm :results none
+multipass shell iiedu
+#+end_src
+
+* Build steps
+** Step 1: Containerfile
+
+The [[./aurora/Containerfile][Containerfile]] defines all non [[https://flatpak.org/][flatpak]] software that will be installed into the final iso.
+We add and prep minecraft as part of the building the container.
+This let's us use standard tooling that's used daliy in the cloud.
+
+** Step 2: Push oci image to a registry
+
+As part of the iso build step, [[https://github.com/containers/skopeo][skopeo]] needs to access the registry.
+
+#+begin_example
+skopeo copy docker://docker.io/heyste/aurora:20240805-1400 oci:/build-container-installer/container/aurora-20240805-1400
+#+end_example
+
+Also, during the iso installation the oci image needs to be accessible.
+
+** Step 3: Create ~deploy.iso~
+
+As part of building the final ~deploy.iso~ its possible to load a number of flatpaks into the image.
+Explore [[https://flathub.org/][Flathub]] to see the latest applications.
+
+* Build requirements
+** podman
+
+- version 4.9.2+
+
+If your using Ubuntu noble then install podman
+
+#+begin_src tmux :session iiedu:vm :results none
+multipass exec iiedu -- sudo apt update
+#+end_src
+
+#+begin_src tmux :session iiedu:vm :results none
+multipass exec iiedu -- sudo apt install -y podman
+#+end_src
+
+** clone repo
+
+#+begin_src tmux :session iiedu:vm  :results none
+git clone --depth 1 --single-branch --branch main https://github.com/heyste/edu-usb
+cd edu-usb
+#+end_src
+
+** set environment variables
+
+#+begin_src tmux :session iiedu:vm :results none
+export REGISTRY=docker.io/heyste
+export IMAGE_NAME=aurora
+#+end_src
+
+If you want to run just the final iso build step then include/updated the following vars;
+
+#+begin_example
+export IMAGE_BUILD=false
+export IMAGE_TAG=
+#+end_example
+
+** Login to your registry
+
+#+begin_src tmux :session iiedu:vm :results none
+podman login ${REGISTRY}
+#+end_src
+
+* Launch build process
+
+#+begin_src tmux :session iiedu:vm :results none
+./build-all.sh
+#+end_src
+
+* Locate ~deploy.iso~
+
+Review the final output of ~build-all.sh~.
+
+#+begin_example
+Build artifacts: /tmp/iso-20240523-1505-726p
+total 6.4G
+-rwxrwxrwx 1 root root 6.4G May 23 15:53 deploy.iso
+Build process has completed! Enjoy testing your new iso
+#+end_example
+
+[[https://etcher.balena.io/][Etcher]] makes it easy to get the ~deploy.iso~ onto suitable media for further testing.
