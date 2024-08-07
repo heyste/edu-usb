@@ -44,7 +44,7 @@ This let's us use standard tooling that's used daliy in the cloud.
 As part of the iso build step, [[https://github.com/containers/skopeo][skopeo]] needs to access the registry.
 
 #+begin_example
-skopeo copy docker://docker.io/heyste/aurora:20240805-1400 oci:/build-container-installer/container/aurora-20240805-1400
+skopeo copy docker://docker.io/heyste/aurora:20240807-1318 oci:/build-container-installer/container/aurora-20240807-1318
 #+end_example
 
 Also, during the iso installation the oci image needs to be accessible.
@@ -107,9 +107,9 @@ podman login ${REGISTRY}
 Review the final output of ~build-all.sh~.
 
 #+begin_example
-Build artifacts: /tmp/iso-20240523-1505-726p
+Build artifacts: /tmp/iso-20240807-1318-726p
 total 6.4G
--rwxrwxrwx 1 root root 6.4G May 23 15:53 deploy.iso
+-rwxrwxrwx 1 root root 6.5G Aug 7 14:48 deploy.iso
 Build process has completed! Enjoy testing your new iso
 #+end_example
 
