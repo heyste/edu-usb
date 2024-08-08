@@ -27,18 +27,20 @@ else
 fi
 echo " ================================================================================== "
 
-// Ref: https://github.com/ublue-os/bluefin/blob/main/.github/workflows/reusable-build-iso.yml#L118
+# Ref: https://github.com/ublue-os/bluefin/blob/main/.github/workflows/reusable-build-iso.yml#L118
 echo "Determine Flatpak Dependencies"
 IMAGE="${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
 
 # Make temp space
-TEMP_FLATPAK_INSTALL_DIR=$(mktemp -d -p /tmp/flatpak.XXX)
+FLATPAK_REFS_DIR=$(mktemp -d /tmp/flatpak-ref.XXX)
+TEMP_FLATPAK_INSTALL_DIR=$(mktemp -d /tmp/flatpak-install.XXX)
 
 # Get list of refs from directory
 FLATPAK_REFS_DIR_LIST=$(cat aurora/flatpaks | tr '\n' ' ' )
 
 # Generate install script
 cat << EOF > ${TEMP_FLATPAK_INSTALL_DIR}/script.sh
+set -ex
 cat /temp_flatpak_install_dir/script.sh
 mkdir -p /flatpak/flatpak /flatpak/triggers
 mkdir /var/tmp || true
@@ -49,13 +51,13 @@ flatpak install --system -y ${FLATPAK_REFS_DIR_LIST}
 ostree refs --repo=\${FLATPAK_SYSTEM_DIR}/repo | grep '^deploy/' | grep -v 'org\.freedesktop\.Platform\.openh264' | sed 's/^deploy\///g' > /output/flatpaks_with_deps
 EOF
 
-docker run --rm --privileged \
-  --entrypoint bash \
-  -e FLATPAK_SYSTEM_DIR=/flatpak/flatpak \
-  -e FLATPAK_TRIGGERSDIR=/flatpak/triggers \
-  --volume ${FLATPAK_REFS_DIR}:/output \
-  --volume ${TEMP_FLATPAK_INSTALL_DIR}:/temp_flatpak_install_dir \
-  ${IMAGE} /temp_flatpak_install_dir/script.sh
+sudo podman run --rm --privileged \
+                --entrypoint bash \
+                -e FLATPAK_SYSTEM_DIR=/flatpak/flatpak \
+                -e FLATPAK_TRIGGERSDIR=/flatpak/triggers \
+                --volume ${FLATPAK_REFS_DIR}:/output \
+                --volume ${TEMP_FLATPAK_INSTALL_DIR}:/temp_flatpak_install_dir \
+                ${IMAGE} /temp_flatpak_install_dir/script.sh
 
 echo " ================================================================================== "
 
@@ -75,7 +77,9 @@ sudo podman run --rm --privileged \
 		IMAGE_REPO=${REGISTRY} \
 		IMAGE_NAME=${IMAGE_NAME} \
 		IMAGE_TAG=${IMAGE_TAG} \
-		VARIANT=Kinoite
+		VARIANT=Kinoite \
+		FLATPAK_REMOTE_REFS="$FLATPAK_LIST" \
+		FLATPAK_REMOTE_URL="https://flathub.org/repo/flathub.flatpakrepo"
 
 echo " ================================================================================== "
 echo "Build artifacts: $ISO_TMPDIR"
