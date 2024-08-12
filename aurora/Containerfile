@@ -1,4 +1,4 @@
-FROM ghcr.io/ublue-os/aurora:39
+FROM ghcr.io/ublue-os/aurora:40
 
 LABEL org.opencontainers.image.title="iiEdu USB"
 LABEL org.opencontainers.image.description="Customized image of Aurora with Minecraft"
