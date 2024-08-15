@@ -23,7 +23,7 @@ sudo snap install multipass
 *** Launch VM
 
 #+begin_src tmux :session iiedu:vm :results none
-multipass launch -v --name iiedu --cpus 6 --disk 40g --memory 8g 24.04
+multipass launch -v --name iiedu --cpus 6 --disk 60g --memory 8g 24.04
 #+end_src
 
 *** connect to VM (if using multipass)
@@ -78,6 +78,8 @@ cd edu-usb
 
 ** set environment variables
 
+Note: choose a registry that you can push too, which is also accessible to end users
+
 #+begin_src tmux :session iiedu:vm :results none
 export REGISTRY=docker.io/heyste
 export IMAGE_NAME=aurora
@@ -96,6 +98,12 @@ export IMAGE_TAG=
 podman login ${REGISTRY}
 #+end_src
 
+* Get latest aurora image
+
+#+begin_src tmux :session iiedu:vm :results none
+podman pull ghcr.io/ublue-os/aurora:40
+#+end_src
+
 * Launch build process
 
 #+begin_src tmux :session iiedu:vm :results none
@@ -107,9 +115,10 @@ podman login ${REGISTRY}
 Review the final output of ~build-all.sh~.
 
 #+begin_example
-Build artifacts: /tmp/iso-20240807-1318-726p
-total 6.4G
--rwxrwxrwx 1 root root 6.5G Aug 7 14:48 deploy.iso
+Build artifacts: /tmp/iso-20240814-2137-sE0r
+total 7.0G
+-r--r--r-- 1 root root 7.0G Aug 14 22:07 deploy.iso
+-rw-r--r-- 1 root root   77 Aug 14 22:08 deploy.iso-CHECKSUM
 Build process has completed! Enjoy testing your new iso
 #+end_example
 
