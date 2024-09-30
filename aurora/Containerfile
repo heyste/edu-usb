@@ -1,15 +1,27 @@
+FROM docker.io/heyste/fedora-sonic-pi-build:20240930a AS sonic-pi
+
 FROM ghcr.io/ublue-os/aurora:40
 
 LABEL org.opencontainers.image.title="iiEdu USB"
-LABEL org.opencontainers.image.description="Customized image of Aurora with Minecraft"
+LABEL org.opencontainers.image.description="Customized image of Aurora with Sonic Pi"
 LABEL org.opencontainers.image.source="https://github.com/heyste/edu-usb"
 LABEL org.opencontainers.image.licenses="MIT"
+
+# pull in elixir + erlang
+COPY --from=sonic-pi /usr/local/lib/elixir  /usr/local/lib/elixir
+COPY --from=sonic-pi /usr/local/lib/erlang  /usr/local/lib/erlang
+COPY --from=sonic-pi /usr/local/bin  /usr/local/bin
+
+COPY --from=sonic-pi /usr/share/gems/ /usr/share/gems
+
+# pull in sonic-pi build
+COPY --from=sonic-pi /usr/ii/sonic-pi  /usr/ii/sonic-pi
+
 
 RUN rpm-ostree install \
         bwm-ng \
         distrobox \
         htop \
-        igt-gpu-tools \
         iotop \
         iwd \
         kitty \
@@ -35,35 +47,6 @@ RUN rpm-ostree install \
     && \
     rm -rf /var/lib/unbound/root.key
 
-
-# A helper to set ARCH_TYPE and ARCH_TYPE2
-COPY arch-helper.sh /usr/bin/arch-helper.sh
-
-# Install Java
-RUN mkdir /tmp/jdk-17 \
-  && curl -L https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz \
-     | tar --directory /tmp/jdk-17 --extract --ungzip --strip-components 1\
-  && mv /tmp/jdk-17 /usr/bin/jdk-17
-
-# Source forge files
-RUN mkdir -p /usr/minecraft/forge \
-  && cd /usr/minecraft \
-  && wget "https://maven.minecraftforge.net/net/minecraftforge/forge/1.19-41.1.0/forge-1.19-41.1.0-mdk.zip" -O forge.zip \
-  && unzip forge.zip -d forge
-
-# Build minecraft forge
-RUN export PATH=$PATH:/usr/bin/jdk-17/bin \
-  && java -version \
-  && mkdir /usr/gradle_home \
-  && export GRADLE_USER_HOME=/usr/gradle_home \
-  && cd /usr/minecraft/forge \
-  && ./gradlew genEclipseRuns
-
-# Update PATH include java binary
-RUN echo 'export PATH=$PATH:/usr/bin/jdk-17/bin' >> /etc/skel/.bashrc
-
-# A helper to sync files/flatpaks
-COPY sync-user.sh /usr/bin/sync-user.sh
 
 # Copy custom config to /etc
 COPY etc etc
