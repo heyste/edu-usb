@@ -1,4 +1,4 @@
-FROM docker.io/heyste/fedora-sonic-pi-build:20240930a AS sonic-pi
+FROM docker.io/heyste/fedora-sonic-pi-build:20241001 AS sonic-pi
 
 FROM ghcr.io/ublue-os/aurora:40
 
@@ -12,6 +12,7 @@ COPY --from=sonic-pi /usr/local/lib/elixir  /usr/local/lib/elixir
 COPY --from=sonic-pi /usr/local/lib/erlang  /usr/local/lib/erlang
 COPY --from=sonic-pi /usr/local/bin  /usr/local/bin
 
+# pull in ruby gems
 COPY --from=sonic-pi /usr/share/gems/ /usr/share/gems
 
 # pull in sonic-pi build

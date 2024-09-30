@@ -1,0 +1,60 @@
+# Source elixir & erlang for Tau Server
+FROM docker.io/hexpm/elixir:1.15.7-erlang-26.1.2-ubuntu-noble-20240429 AS elixir
+
+FROM fedora:40
+
+ARG QT_SELECT="qt6"
+ENV QT_SELECT="qt6"
+ARG LANG="en_US.utf8"
+ENV LANG="en_US.UTF-8"
+
+RUN dnf install -y \
+      SDL_sound \
+      SDL_sound-devel \
+      automake \
+      cmake \
+      curl \
+      git \
+      glibc-langpack-en \
+      glibc-locale-source \
+      libXext-devel \
+      make \
+      openssl-devel \
+      pipewire-jack-audio-connection-kit \
+      pipewire-jack-audio-connection-kit-devel \
+      qt6-linguist \
+      qt6-qtbase-devel \
+      qt6-qtsvg-devel \
+      qt6-qttools \
+      qt6-qttools-devel \
+      qt6-qtwayland \
+      rtmidi \
+      rtmidi-devel \
+      ruby-devel \
+      tar \
+      unzip \
+      zip \
+      zlib-devel
+
+# pull in elixir + erlang
+COPY --from=elixir /usr/local/lib/elixir  /usr/local/lib/elixir
+COPY --from=elixir /usr/local/lib/erlang  /usr/local/lib/erlang
+COPY --from=elixir /usr/local/bin  /usr/local/bin
+
+# Create a symlink for gcc-12 as sonic Pi source uses that during the build process
+# Set default locale
+# Add required ruby gems
+RUN ln -sf /usr/bin/gcc /usr/bin/gcc-12 \
+ && touch /etc/localtime \
+ && export LC_ALL=en_US.UTF-8 && localedef --force -i en_US -f UTF-8 en_US.UTF-8 \
+ && gem install prime rexml racc
+
+WORKDIR /usr/ii
+
+# Support playing over rdp connection
+# https://github.com/heyste/sonic-pi/blob/support-xrdp/app/server/ruby/bin/daemon.rb#L1283-L1300
+RUN git clone --single-branch --branch support-xrdp --depth 1 https://github.com/heyste/sonic-pi.git
+
+WORKDIR /usr/ii/sonic-pi/app
+
+RUN ./linux-build-all.sh
