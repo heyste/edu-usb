@@ -1,16 +1,12 @@
-FROM docker.io/heyste/fedora-sonic-pi-build:20241001 AS sonic-pi
+FROM docker.io/heyste/fedora-sonic-pi-build:20241009 AS sonic-pi
 
-FROM ghcr.io/ublue-os/aurora:40
+# FROM ghcr.io/ublue-os/aurora:40
+FROM quay.io/fedora-ostree-desktops/kinoite:40
 
 LABEL org.opencontainers.image.title="iiEdu USB"
 LABEL org.opencontainers.image.description="Customized image of Aurora with Sonic Pi"
 LABEL org.opencontainers.image.source="https://github.com/heyste/edu-usb"
 LABEL org.opencontainers.image.licenses="MIT"
-
-# pull in elixir + erlang
-COPY --from=sonic-pi /usr/local/lib/elixir  /usr/local/lib/elixir
-COPY --from=sonic-pi /usr/local/lib/erlang  /usr/local/lib/erlang
-COPY --from=sonic-pi /usr/local/bin  /usr/local/bin
 
 # pull in ruby gems
 COPY --from=sonic-pi /usr/share/gems/ /usr/share/gems
@@ -18,36 +14,33 @@ COPY --from=sonic-pi /usr/share/gems/ /usr/share/gems
 # pull in sonic-pi build
 COPY --from=sonic-pi /usr/ii/sonic-pi  /usr/ii/sonic-pi
 
-
 RUN rpm-ostree install \
-        bwm-ng \
+        btop \
         distrobox \
+        google-noto-sans-fonts \
         htop \
         iotop \
-        iwd \
         kitty \
-        krb5-workstation \
-        libvirt-daemon \
-        libvirt-daemon-config-network \
-        libvirt-daemon-driver-interface \
-        libvirt-daemon-driver-network \
-        libvirt-daemon-driver-nwfilter \
-        libvirt-daemon-driver-qemu \
-        libvirt-daemon-driver-secret \
-        libvirt-daemon-driver-storage-core \
-        libvirt-dbus \
-        netcat \
-        qemu-kvm \
+        links \
+        plasma-workspace-x11 \
+        qpwgraph \
+        ruby \
+        ruby-devel \
+        rubygem-racc \
+        supercollider \
         sysprof \
         the_silver_searcher \
         vim \
-        wireguard-tools \
-        zsh \
-    && \
-    systemctl enable libvirtd.socket \
-    && \
-    rm -rf /var/lib/unbound/root.key
+        xorgxrdp \
+        xrdp
 
+RUN mkdir -p /usr/ii/pw \
+ && curl -sL https://www.rpmfind.net/linux/opensuse/tumbleweed/repo/oss/x86_64/pipewire-module-xrdp-0~git19-1.4.x86_64.rpm \
+         -o /usr/ii/pw/pipewire-module-xrdp-0~git19-1.4.x86_64.rpm \
+ && rpm-ostree install --cache-only /usr/ii/pw/pipewire-module-xrdp-0~git19-1.4.x86_64.rpm
+
+RUN  systemctl enable xrdp.service
+# && systemctl enable opensshd.service
 
 # Copy custom config to /etc
 COPY etc etc

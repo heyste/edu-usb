@@ -53,7 +53,8 @@ WORKDIR /usr/ii
 
 # Support playing over rdp connection
 # https://github.com/heyste/sonic-pi/blob/support-xrdp/app/server/ruby/bin/daemon.rb#L1283-L1300
-RUN git clone --single-branch --branch support-xrdp --depth 1 https://github.com/heyste/sonic-pi.git
+RUN git clone --single-branch --branch support-xrdp --depth 1 https://github.com/heyste/sonic-pi.git \
+ && rm -rf sonic-pi/.git
 
 WORKDIR /usr/ii/sonic-pi/app
 

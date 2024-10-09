@@ -40,8 +40,7 @@ sudo podman run --rm --privileged \
 		IMAGE_REPO=${REGISTRY} \
 		IMAGE_NAME=${IMAGE_NAME} \
 		IMAGE_TAG=${IMAGE_TAG} \
-		VARIANT=Kinoite \
-		FLATPAK_REMOTE_REFS="runtime/org.kde.Platform/x86_64/5.15-23.08 app/net.sonic_pi.SonicPi/x86_64/stable"
+		VARIANT=Kinoite
 
 echo " ================================================================================== "
 echo "Build artifacts: $ISO_TMPDIR"
