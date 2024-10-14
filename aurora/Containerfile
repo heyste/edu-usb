@@ -1,7 +1,6 @@
 FROM docker.io/heyste/fedora-sonic-pi-build:20241009 AS sonic-pi
 
-# FROM ghcr.io/ublue-os/aurora:40
-FROM quay.io/fedora-ostree-desktops/kinoite:40
+FROM ghcr.io/ublue-os/aurora:40
 
 LABEL org.opencontainers.image.title="iiEdu USB"
 LABEL org.opencontainers.image.description="Customized image of Aurora with Sonic Pi"
@@ -39,8 +38,8 @@ RUN mkdir -p /usr/ii/pw \
          -o /usr/ii/pw/pipewire-module-xrdp-0~git19-1.4.x86_64.rpm \
  && rpm-ostree install --cache-only /usr/ii/pw/pipewire-module-xrdp-0~git19-1.4.x86_64.rpm
 
-RUN  systemctl enable xrdp.service
-# && systemctl enable opensshd.service
+RUN systemctl enable xrdp.service \
+ && systemctl disable firewalld.service
 
 # Copy custom config to /etc
 COPY etc etc
